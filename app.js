@@ -36,29 +36,37 @@ app.get("/",function(req,res){
 });
 
 app.post("/register",async function(req,res){
-    const username = req.body.username;
-    const passcode = req.body.password;
-    const newUser = new item({
-        email: username,
-        password: passcode
-    });
-    newUser.save()
-    .then(() => {
-        const check = await User.findOne({ email: req.body.username });
+    try {
+        const username = req.body.username;
+        const passcode = req.body.password;
+        const newUser = new item({
+            email: username,
+            password: passcode
+        });
+        await newUser.save();
+        const check = await item.findOne({ email: req.body.username });
         console.log("Saved user with decrypted password:", check);
         res.render("secrets");
-    });
-
+    } catch (error) {
+        console.log("Error during registration:", error);
+        res.redirect("/register");
+    }
 });
 app.post("/login",async function(req,res){
-    const username = req.body.username;
-    const passcode = req.body.password;
-    const foundUser = await  item.findOne({email:username});
-    if(foundUser.password === passcode){
-        res.render("secrets");
-    }
-    else{
-        console.log("error");
+    try {
+        const username = req.body.username;
+        const passcode = req.body.password;
+        const foundUser = await item.findOne({email:username});
+        if(foundUser && foundUser.password === passcode){
+            res.render("secrets");
+        }
+        else{
+            console.log("Login failed: incorrect credentials");
+            res.redirect("/login");
+        }
+    } catch (error) {
+        console.log("Error during login:", error);
+        res.redirect("/login");
     }
 });
 app.get("/login",function(req,res){
